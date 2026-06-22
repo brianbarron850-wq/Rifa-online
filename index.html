@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rifa App Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> <style>
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; } /* [cite: 37, 38] */
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+  <div class="container mx-auto p-4 pt-8">
+    
+    <div class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+      <div id="contenedor-cuenta-regresiva" class="text-2xl md:text-3xl font-black text-indigo-700 drop-shadow-sm hidden"></div> <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button id="btn-login-admin" onclick="cambiarModoAdmin()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1">
+          🔐 Modo Admin
+        </button>
+
+        <div id="admin-panel" class="hidden">
+          <button onclick="reiniciarTodaLaRifa()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1">
+            ⚙️ Reiniciar Rifa </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"> <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500 animate-pulse">Cargando estadísticas...</div> </div>
+
+    <header class="text-center mb-6">
+      <h1 id="header-titulo" class="text-3xl font-extrabold text-gray-800">🎟️ Cargando evento...</h1> <p id="header-descripcion" class="text-gray-500 text-sm mt-1">Conectando con el servidor independiente...</p> </header>
+
+    <div class="max-w-md mx-auto mb-6"> <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <span class="text-gray-500">🔍</span> </div>
+        <input type="number" id="input-busqueda" oninput="renderizarBoletos()" placeholder="Buscar número de boleto..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm transition-all text-sm font-medium"> </div>
+    </div>
+
+    <div class="flex justify-center gap-4 mb-8 text-xs font-bold uppercase tracking-wider flex-wrap items-center">
+      <button id="btn-filtro-Todos" onclick="alternarFiltro('Todos')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-500 ring-2 ring-indigo-200 shadow-sm transition-all cursor-pointer"> <span class="w-4 h-4 bg-gray-400 inline-block rounded-md shadow-sm"></span> <span>Todos</span> </button>
+      <button id="btn-filtro-Disponible" onclick="alternarFiltro('Disponible')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer"> <span class="w-4 h-4 bg-emerald-500 inline-block rounded-md shadow-sm"></span> <span>Disponible</span> </button> <button id="btn-filtro-Pendiente" onclick="alternarFiltro('Pendiente')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer"> <span class="w-4 h-4 bg-amber-400 inline-block rounded-md shadow-sm"></span> <span>Pendiente</span> </button>
+      <button id="btn-filtro-Pagado" onclick="alternarFiltro('Pagado')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-all cursor-pointer"> <span class="w-4 h-4 bg-rose-500 inline-block rounded-md shadow-sm"></span> <span>Pagado</span> </button> <a href="https://wa.me/526484653188" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-sm transition-all cursor-pointer no-underline"> <svg class="w-4 h-4 fill-current text-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.455L0 24zm6.59-4.846c1.66.986 3.296 1.48 4.905 1.481 5.482 0 9.94-4.461 9.943-9.945.002-2.657-1.03-5.155-2.906-7.033A9.858 9.858 0 0 0 12.008 1.14c-5.485 0-9.946 4.464-9.948 9.95a9.87 9.87 0 0 0 1.451 5.14L2.533 21.58l5.314-1.393zM16.518 14.4c-.244-.122-1.445-.712-1.668-.793-.223-.081-.385-.122-.547.122-.162.243-.628.793-.77.954-.142.162-.284.182-.528.061-.244-.122-1.03-.38-1.962-1.211-.725-.647-1.214-1.446-1.356-1.69-.142-.243-.015-.374.107-.495.11-.11.244-.284.365-.426.122-.142.162-.243.244-.406.081-.162.041-.305-.02-.426-.061-.122-.547-1.32-.75-1.81-.197-.474-.398-.41-.547-.417-.141-.007-.304-.008-.467-.008-.162 0-.426.061-.649.304-.223.243-.852.833-.852 2.031 0 1.199.873 2.356.995 2.518.122.162 1.717 2.622 4.16 3.676.581.25 1.034.4 1.387.513.584.186 1.115.159 1.534.097.467-.069 1.445-.59 1.648-1.159.203-.569.203-1.056.142-1.159-.061-.101-.223-.162-.467-.284z"/> </svg>
+        <span>WhatsApp</span>
+      </a>
+    </div>
+
+    <div id="loading" class="text-center py-20"> <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-indigo-600 border-t-transparent"></div> </div>
+
+    <div id="sin-resultados" class="text-center py-12 text-gray-400 font-medium hidden">
+      No hay boletos con el estado o número seleccionado para mostrar. </div>
+
+    <div id="grid-boletos" class="grid-container hidden"></div> </div>
+
+  <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50"> <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8"> <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">Boleto #<span id="modal-numero-titulo"></span></h3> <span id="badge-estado" class="px-3 py-1 rounded-full text-xs font-bold uppercase"></span> </div>
+      
+      <form id="form-registro" onsubmit="guardarDatos(event)" class="space-y-4"> <input type="hidden" id="form-numero"> <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
+          <input type="text" id="form-nombre" required class="w-full border-gray-300 rounded-lg p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-200 disabled:text-gray-500"> </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">Teléfono de Contacto</label>
+          <input type="tel" id="form-telefono" required class="w-full border-gray-300 rounded-lg p-3 bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-200 disabled:text-gray-500"> </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Estado</label>
+            <select id="form-estado" class="w-full border-gray-300 rounded-lg p-3 bg-gray-50 outline-none disabled:bg-gray-200 disabled:text-gray-500"> <option value="Disponible">Disponible</option> <option value="Pendiente">Pendiente</option> <option value="Pagado">Pagado</option> </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Pago vía</label>
+            <select id="form-pago" class="w-full border-gray-300 rounded-lg p-3 bg-gray-50 outline-none disabled:bg-gray-200 disabled:text-gray-500"> <option value="Efectivo">Efectivo</option> <option value="Transferencia">Transferencia</option> <option value="Otro">Otro</option> </select>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button type="button" onclick="cerrarModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-600 rounded-lg font-bold hover:bg-gray-200 transition-colors cursor-pointer">Cancelar</button> <button type="submit" id="btn-guardar" class="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all cursor-pointer disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed">Guardar</button> </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // INSERTE AQUÍ LA URL COMPLETA DE SU WEB APP DE GOOGLE
+    // ==========================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbzO6TKFT1Pv7LJfh0KY6RRamgtuAIKFpKC78NAgnKqMSuH0A6R0ZxSOwzMxgy1gZJ59dA/exec"; 
+
+    let cacheBoletos = []; // [cite: 50]
+    let esAdministrador = false; // [cite: 51]
+    let filtroActivo = 'Todos'; // [cite: 51]
+    let intervaloTimer = null; // [cite: 51]
+    let pinSesion = ""; // Almacenamiento local temporal del PIN de seguridad
+
+    document.addEventListener("DOMContentLoaded", inicializar); // [cite: 51]
+
+    // Maneja la conmutación y petición de credenciales
+    function cambiarModoAdmin() {
+      if (esAdministrador) {
+        // Si ya es admin, el botón sirve para cerrar sesión de forma segura
+        pinSesion = "";
+        alert("🔒 Sesión de administrador cerrada.");
+        document.getElementById('btn-login-admin').innerText = "🔐 Modo Admin";
+        document.getElementById('btn-login-admin').className = "px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer";
+        inicializar();
+      } else {
+        const pinIngresado = prompt("Escriba el PIN de acceso de Administrador:");
+        if (pinIngresado !== null) {
+          pinSesion = pinIngresado;
+          inicializar();
+        }
+      }
+    }
+
+    function inicializar() {
+      document.getElementById('loading').classList.remove('hidden'); // [cite: 52]
+      document.getElementById('grid-boletos').classList.add('hidden'); // [cite: 52]
+
+      // Solicitud asíncrona estructurada GET hacia Apps Script externo
+      fetch(`${API_URL}?action=obtenerData&pin=${pinSesion}`)
+        .then(response => response.json())
+        .then(data => {
+          esAdministrador = data.esAdmin; // [cite: 53]
+          
+          if (esAdministrador) {
+            document.getElementById('admin-panel').classList.remove('hidden'); // [cite: 53]
+            document.getElementById('btn-login-admin').innerText = "🔓 Salir de Admin";
+            document.getElementById('btn-login-admin').className = "px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer";
+          } else {
+            document.getElementById('admin-panel').classList.add('hidden'); // [cite: 53]
+            if (pinSesion !== "") {
+              alert("❌ PIN Incorrecto. Acceso denegado.");
+              pinSesion = "";
+            }
+          }
+
+          document.getElementById('header-titulo').innerText = data.titulo || "🎟️ Gestión de Boletos"; // [cite: 54]
+          document.getElementById('header-descripcion').innerText = data.descripcion || "..."; // [cite: 54]
+
+          if (data.fechaLimite) {
+            iniciarCuentaRegresiva(data.fechaLimite); // [cite: 54]
+          }
+
+          renderizarResumen(data.resumen);  // [cite: 54]
+          cacheBoletos = data.boletos || []; // [cite: 54]
+          alternarFiltro(filtroActivo); // [cite: 55]
+        })
+        .catch(error => {
+          console.error("Error al cargar datos:", error); // [cite: 55]
+          document.getElementById('loading').innerText = "Error crítico al sincronizar con el backend."; // [cite: 55]
+        });
+    }
+
+    function iniciarCuentaRegresiva(fechaStr) {
+      const fechaDestino = new Date(fechaStr).getTime(); // [cite: 56]
+      const cont = document.getElementById('contenedor-cuenta-regresiva'); // [cite: 57]
+      if (isNaN(fechaDestino)) return; // [cite: 57] 
+      
+      cont.classList.remove('hidden'); // [cite: 57]
+      if (intervaloTimer) clearInterval(intervaloTimer); // [cite: 57]
+      intervaloTimer = setInterval(() => { // [cite: 58]
+        const ahora = new Date().getTime(); // [cite: 58]
+        const distancia = fechaDestino - ahora; // [cite: 58]
+
+        if (distancia < 0) { // [cite: 58]
+          clearInterval(intervaloTimer); // [cite: 58]
+          cont.innerText = "¡TIEMPO AGOTADO!"; // [cite: 58]
+          cont.classList.remove("text-indigo-700"); // [cite: 58]
+          cont.classList.add("text-red-600", "animate-pulse"); // [cite: 58]
+          return; // [cite: 58]
+        }
+
+        const dias = Math.floor(distancia / (1000 * 60 * 60 * 24)); // [cite: 59]
+        const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); // [cite: 59]
+        const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60)); // [cite: 59]
+        const segundos = Math.floor((distancia % (1000 * 60)) / 1000); // [cite: 59]
+
+        let texto = "⏳ "; // [cite: 59]
+        if (dias > 0) texto += `${dias}d `; // [cite: 60]
+        texto += `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`; // [cite: 60]
+        cont.innerText = texto; // [cite: 60]
+      }, 1000); // [cite: 60]
+    }
+
+    function alternarFiltro(estado) {
+      const estados = ['Todos', 'Disponible', 'Pendiente', 'Pagado']; // [cite: 61]
+      if (filtroActivo === estado && estado !== 'Todos') { // [cite: 62]
+        filtroActivo = 'Todos'; // [cite: 62]
+      } else {
+        filtroActivo = estado; // [cite: 63]
+      }
+
+      estados.forEach(est => { // [cite: 64]
+        const btn = document.getElementById(`btn-filtro-${est}`); // [cite: 64]
+        if (filtroActivo === est) { // [cite: 64]
+          btn.classList.remove('bg-white', 'border-gray-200'); // [cite: 64]
+          btn.classList.add('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200'); // [cite: 64]
+        } else {
+          btn.classList.remove('bg-indigo-50', 'border-indigo-500', 'ring-2', 'ring-indigo-200'); // [cite: 64]
+          btn.classList.add('bg-white', 'border-gray-200'); // [cite: 64]
+        }
+      }); // [cite: 65]
+      renderizarBoletos(); // [cite: 65]
+    }
+
+    function renderizarResumen(res) {
+      const container = document.getElementById('stats-container'); // [cite: 65]
+      if (!res) return; // [cite: 66]
+      
+      let items = [
+        { label: 'Precio boleto', val: `$${res.precio || 0}`, color: 'indigo' }, // [cite: 66, 67]
+        { label: 'Total boletos', val: res.total || 0, color: 'slate' }, // [cite: 67, 68]
+        { label: 'Boletos disponibles', val: res.disponibles || 0, color: 'emerald' }, // [cite: 68, 69]
+        { label: 'Boletos vendidos', val: res.vendidos || 0, color: 'rose' }, // [cite: 69, 70]
+        { label: 'Boletos pagados', val: res.pagados || 0, color: 'cyan' }, // [cite: 70, 71]
+        { label: 'Boletos pendientes', val: res.pendientes || 0, color: 'amber' } // [cite: 71, 72]
+      ];
+
+      if (esAdministrador) { // [cite: 73]
+        items.splice(5, 0, { label: 'Dinero pagado', val: `$${res.dineroPagado || 0}`, color: 'blue' }); // [cite: 73]
+        items.push({ label: 'Dinero pendiente', val: `$${res.dineroPendiente || 0}`, color: 'red' }); // [cite: 74]
+      }
+
+      container.innerHTML = items.map(i => `
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-${i.color}-500 transition-transform hover:scale-105">
+          <p class="text-xs font-bold text-gray-400 uppercase">${i.label}</p>
+          <p class="text-xl font-black text-gray-800">${i.val}</p>
+        </div>
+      `).join(''); // [cite: 75]
+    }
+
+    function renderizarBoletos() {
+      const grid = document.getElementById('grid-boletos'); // [cite: 76]
+      const msgSinResultados = document.getElementById('sin-resultados'); // [cite: 76]
+      grid.innerHTML = ''; // [cite: 77]
+      
+      const textoBusqueda = document.getElementById('input-busqueda') ? document.getElementById('input-busqueda').value.trim() : ""; // [cite: 77]
+      let boletosFiltrados = cacheBoletos.filter(b => { // [cite: 78]
+        if (!b) return false;
+        if (textoBusqueda !== "" && !b.numero.toString().includes(textoBusqueda)) { return false; } // [cite: 78]
+        if (esAdministrador) return true; // [cite: 78] 
+        
+        const nombreBoleto = b.nombre ? b.nombre.toString().trim() : ""; // [cite: 78]
+        const estaAsignado = nombreBoleto !== "" && nombreBoleto !== "RESERVADO"; // [cite: 79]
+        return !(estaAsignado && b.estado === "Pagado"); // [cite: 79] 
+      });
+
+      if (filtroActivo && filtroActivo !== 'Todos') { // [cite: 80]
+        boletosFiltrados = boletosFiltrados.filter(b => {
+          let estadoBoleto = b.estado ? b.estado.toString().trim() : "";
+          if (estadoBoleto === "") { estadoBoleto = "Disponible"; }
+          return estadoBoleto.toLowerCase() === filtroActivo.toLowerCase();
+        }); // [cite: 80]
+      }
+
+      document.getElementById('loading').classList.add('hidden'); // [cite: 81]
+
+      if (boletosFiltrados.length === 0) {
+        msgSinResultados.classList.remove('hidden'); // [cite: 81]
+        grid.classList.add('hidden'); // [cite: 82]
+        return;
+      } else {
+        msgSinResultados.classList.add('hidden'); // [cite: 82]
+      }
+      
+      boletosFiltrados.forEach(b => {
+        const card = document.createElement('div');
+        const nombreBoleto = b.nombre ? b.nombre.toString().trim() : "";
+        const estaAsignado = nombreBoleto !== "" && nombreBoleto !== "RESERVADO";
+        const esPendiente = b.estado === "Pendiente";
+        const esPagado = b.estado === "Pagado";
+        
+        let textoNumeroClass = ""; // [cite: 83, 84]
+        
+        if (!estaAsignado && !esPendiente && !esPagado) {
+          card.className = "bg-emerald-500 p-3 rounded-xl shadow-md cursor-pointer hover:bg-emerald-600 transform hover:-translate-y-1 transition-all text-white";
+          textoNumeroClass = "text-white"; // [cite: 84]
+        } else if (esPendiente) {
+          card.className = "bg-amber-50 border-2 border-amber-400 p-3 rounded-xl shadow-sm cursor-pointer hover:bg-amber-100 transition-all text-amber-800";
+          textoNumeroClass = "text-amber-600"; // [cite: 84, 85]
+        } else if (esPagado) {
+          card.className = "bg-rose-50 border-2 border-rose-400 p-3 rounded-xl shadow-sm cursor-pointer hover:bg-rose-100 transition-all text-rose-800";
+          textoNumeroClass = "text-rose-600"; // [cite: 85, 86]
+        }
+        
+        let textoNombre = b.nombre || ""; // [cite: 86, 87]
+        if (b.estado === "Pendiente" && !esAdministrador) { textoNombre = "OCUPADO"; } // [cite: 87]
+
+        card.innerHTML = `
+          <div class="text-center">
+            <span class="block text-2xl font-black ${textoNumeroClass}">#${b.numero}</span>
+            <span class="${(esPendiente || esPagado) ? 'text-gray-600' : 'text-emerald-100'} block text-[10px] font-bold truncate">
+              ${(esPendiente || esPagado) ? textoNombre : 'DISPONIBLE'}
+            </span>
+          </div>
+        `; // [cite: 88, 89]
+        card.onclick = () => abrirModal(b); // [cite: 90]
+        grid.appendChild(card); // [cite: 90]
+      });
+
+      grid.classList.remove('hidden'); // [cite: 90]
+    }
+
+    function abrirModal(boleto) {
+      let estadoBoleto = boleto.estado ? boleto.estado.toString().trim() : ""; // [cite: 90, 91]
+      if (estadoBoleto === "") { estadoBoleto = "Disponible"; } // [cite: 91]
+
+      const estaOcupado = estadoBoleto === "Pendiente" || estadoBoleto === "Pagado"; // [cite: 92]
+      if (estaOcupado && !esAdministrador) { return; } // [cite: 93]
+      
+      document.getElementById('modal-numero-titulo').innerText = boleto.numero; // [cite: 94]
+      document.getElementById('form-numero').value = boleto.numero; // [cite: 94]
+      document.getElementById('form-nombre').value = (boleto.nombre === "RESERVADO") ? "" : (boleto.nombre || ''); // [cite: 95]
+      document.getElementById('form-telefono').value = boleto.telefono || ''; // [cite: 95]
+      document.getElementById('form-estado').value = estadoBoleto; // [cite: 95]
+      document.getElementById('form-pago').value = boleto.tipoPago || 'Efectivo'; // [cite: 96]
+      
+      const badge = document.getElementById('badge-estado');
+      let badgeClass = "bg-emerald-100 text-emerald-700";
+      let estadoTexto = "Libre"; // [cite: 96]
+      if (estadoBoleto === "Pendiente") {
+        badgeClass = "bg-amber-100 text-amber-800 border border-amber-300"; // [cite: 97]
+        estadoTexto = "Pendiente"; // [cite: 98]
+      } else if (estadoBoleto === "Pagado") {
+        badgeClass = "bg-rose-100 text-rose-700"; // [cite: 98]
+        estadoTexto = "Pagado"; // [cite: 99]
+      }
+
+      badge.innerText = estadoTexto; // [cite: 99]
+      badge.className = `px-3 py-1 rounded-full text-xs font-bold uppercase ${badgeClass}`; // [cite: 100]
+
+      const inputs = ['form-nombre', 'form-telefono', 'form-estado', 'form-pago']; // [cite: 100]
+      inputs.forEach(id => document.getElementById(id).disabled = false); // [cite: 101]
+      document.getElementById('btn-guardar').disabled = false; // [cite: 101]
+      
+      if (!estaOcupado && !esAdministrador) {
+        document.getElementById('form-estado').value = 'Pendiente'; // [cite: 101]
+        document.getElementById('form-estado').disabled = true; // [cite: 102]
+      }
+
+      document.getElementById('modal').classList.remove('hidden'); // [cite: 102]
+    }
+
+    function cerrarModal() {
+      document.getElementById('modal').classList.add('hidden'); // [cite: 103]
+    }
+
+    function guardarDatos(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-guardar');
+      btn.disabled = true; btn.innerText = "Procesando..."; // [cite: 104, 105]
+
+      const datos = {
+        numero: document.getElementById('form-numero').value,
+        nombre: document.getElementById('form-nombre').value,
+        telefono: document.getElementById('form-telefono').value,
+        estado: document.getElementById('form-estado').value,
+        tipoPago: document.getElementById('form-pago').value
+      };
+
+      // Ejecución de guardado directo mediante la API REST externa (Sustituye a google.script.run)
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "registrarCompra", datos: datos, pin: pinSesion })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          cerrarModal(); // [cite: 106]
+          inicializar(); // [cite: 106]
+        } else {
+          alert("❌ Error del Servidor: " + (res.error || "No se pudo guardar"));
+        }
+        btn.disabled = false; btn.innerText = "Guardar"; // [cite: 106]
+      })
+      .catch(err => {
+        console.error(err);
+        alert("❌ Error de red al procesar el guardado.");
+        btn.disabled = false; btn.innerText = "Guardar";
+      });
+    }
+
+    function reiniciarTodaLaRifa() {
+      const confirmacion = confirm("⚠️ ¿Estás completamente seguro de reiniciar TODA la rifa? Se borrarán todos los registros."); // [cite: 107]
+      if (confirmacion) { // [cite: 108]
+        fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: "vaciarRifa", pin: pinSesion })
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            alert("✅ La rifa ha sido restablecida por completo."); // [cite: 108]
+            filtroActivo = 'Todos'; document.getElementById('input-busqueda').value = ""; // [cite: 108]
+            inicializar(); // [cite: 108]
+          } else {
+            alert("❌ Error: " + res.error);
+          }
+        })
+        .catch(() => alert("❌ Ocurrió un problema de comunicación."));
+      }
+    }
+  </script>
+</body>
+</html>
